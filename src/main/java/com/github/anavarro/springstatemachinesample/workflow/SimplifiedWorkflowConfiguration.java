@@ -40,7 +40,7 @@ public class SimplifiedWorkflowConfiguration extends EnumStateMachineConfigurerA
             super.configure(states);
             states
                     .withStates()
-                    .initial(INITIATED)
+                    .initial(INITIATED_STATE)
                     .states(EnumSet.allOf(SimplifiedWorkflowState.class));
         }
 
@@ -51,17 +51,17 @@ public class SimplifiedWorkflowConfiguration extends EnumStateMachineConfigurerA
 
             // Use choiced in external to go from a state to another, is it better?
             transitions
-                    .withChoice().source(INITIATED).first(RFQ_SAVED, workflowAction::saveRfqToRequest).last(INITIATED).and()
-                    .withChoice().source(RFQ_SAVED).first(PRICING_INFO_SAVED, workflowAction::savePricingInfoToClientPricing).last(RFQ_SAVED).and()
-                    .withChoice().source(PRICING_INFO_SAVED).first(BETA_USER_CONFIRMED, workflowAction::askIsBetaToUser).last(BETA_USER_DENIED).and()
-                    .withChoice().source(BETA_USER_CONFIRMED).first(PRICE_ASKED, workflowAction::askPriceToTraderPrice).last(BETA_USER_CONFIRMED).and()
-                    .withExternal().source(PRICE_ASKED).target(PRICE_RECEIVED).event(RECEIVING_PRICE_FROM_TRADER_PRICER).and()
-                    .withChoice().source(PRICE_RECEIVED).first(PRICING_OTHER_INFO_SAVED, workflowAction::savePricingOtherInfoToBooking).last(PRICE_RECEIVED).and()
-                    .withChoice().source(PRICING_OTHER_INFO_SAVED).first(MARGIN_SAVED, workflowAction::applyMarginToClientPricing).last(PRICING_OTHER_INFO_SAVED).and()
-                    .withChoice().source(MARGIN_SAVED).first(DEFAULT_BOOKING_INFO_SAVED, workflowAction::defaultBookingInfoToBooking).last(MARGIN_SAVED).and()
-                    .withChoice().source(DEFAULT_BOOKING_INFO_SAVED).first(PDC_COMPUTATION_ASKED, workflowAction::askPdcComputationToRisky).last(DEFAULT_BOOKING_INFO_SAVED).and()
-                    .withExternal().source(PDC_COMPUTATION_ASKED).target(PDC_COMPUTATION_SAVED).event(RECEIVING_PDC_COMPUTATION_FROM_RISKY).and()
-                    .withChoice().source(PDC_COMPUTATION_SAVED).first(TRANSACTION_SAVED, workflowAction::sendTransactionToRequest).last(PDC_COMPUTATION_SAVED);
+                    .withChoice().source(INITIATED_STATE).first(RFQ_SAVED_STATE, workflowAction::saveRfqToRequest).last(INITIATED_STATE).and()
+                    .withChoice().source(RFQ_SAVED_STATE).first(PRICING_INFO_SAVED_STATE, workflowAction::savePricingInfoToClientPricing).last(RFQ_SAVED_STATE).and()
+                    .withChoice().source(PRICING_INFO_SAVED_STATE).first(BETA_USER_CONFIRMED_STATE, workflowAction::askIsBetaToUser).last(BETA_USER_DENIED_STATE).and()
+                    .withChoice().source(BETA_USER_CONFIRMED_STATE).first(PRICE_ASKED_STATE, workflowAction::askPriceToTraderPrice).last(BETA_USER_CONFIRMED_STATE).and()
+                    .withExternal().source(PRICE_ASKED_STATE).target(PRICE_RECEIVED_STATE).event(RECEIVING_PRICE_FROM_TRADER_PRICER_EVENT).and()
+                    .withChoice().source(PRICE_RECEIVED_STATE).first(PRICING_OTHER_INFO_SAVED_STATE, workflowAction::savePricingOtherInfoToBooking).last(PRICE_RECEIVED_STATE).and()
+                    .withChoice().source(PRICING_OTHER_INFO_SAVED_STATE).first(MARGIN_SAVED_STATE, workflowAction::applyMarginToClientPricing).last(PRICING_OTHER_INFO_SAVED_STATE).and()
+                    .withChoice().source(MARGIN_SAVED_STATE).first(DEFAULT_BOOKING_INFO_SAVED_STATE, workflowAction::defaultBookingInfoToBooking).last(MARGIN_SAVED_STATE).and()
+                    .withChoice().source(DEFAULT_BOOKING_INFO_SAVED_STATE).first(PDC_COMPUTATION_ASKED_STATE, workflowAction::askPdcComputationToRisky).last(DEFAULT_BOOKING_INFO_SAVED_STATE).and()
+                    .withExternal().source(PDC_COMPUTATION_ASKED_STATE).target(PDC_COMPUTATION_SAVED_STATE).event(RECEIVING_PDC_COMPUTATION_FROM_RISKY_EVENT).and()
+                    .withChoice().source(PDC_COMPUTATION_SAVED_STATE).first(TRANSACTION_SAVED_STATE, workflowAction::sendTransactionToRequest).last(PDC_COMPUTATION_SAVED_STATE);
         }
 
 
@@ -71,8 +71,8 @@ public class SimplifiedWorkflowConfiguration extends EnumStateMachineConfigurerA
         }
 
         @Bean
-        public WorkflowController workflowController(final StateMachineFactory<WorkflowState, WorkflowEvent> stateMachineFactory) {
-            return new WorkflowController(stateMachineFactory);
+        public SimplifiedWorkflowController workflowController(final StateMachineFactory<SimplifiedWorkflowState, SimplifiedWorkflowEvent> stateMachineFactory) {
+            return new SimplifiedWorkflowController(stateMachineFactory);
         }
 
 
