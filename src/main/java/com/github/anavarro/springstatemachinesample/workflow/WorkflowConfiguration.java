@@ -14,13 +14,11 @@ import org.springframework.statemachine.config.builders.StateMachineStateConfigu
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 import org.springframework.statemachine.listener.StateMachineListener;
 
-import java.util.EnumSet;
-
 import static com.github.anavarro.springstatemachinesample.workflow.WorkflowState.*;
 import static com.github.anavarro.springstatemachinesample.workflow.WorkflowEvent.*;
 
 /**
- * Created by anavarro on 23/07/16.
+ * Created by anavarro on 26/07/16.
  */
 @Configuration
 @EnableStateMachineFactory
@@ -32,7 +30,6 @@ public class WorkflowConfiguration extends EnumStateMachineConfigurerAdapter<Wor
     public void configure(StateMachineConfigurationConfigurer<WorkflowState, WorkflowEvent> config) throws Exception {
         super.configure(config);
         config.withConfiguration().listener(listener());
-
     }
 
     @Override
@@ -40,8 +37,21 @@ public class WorkflowConfiguration extends EnumStateMachineConfigurerAdapter<Wor
         super.configure(states);
         states
                 .withStates()
-                .initial(INITIATED)
-                .states(EnumSet.allOf(WorkflowState.class));
+                .initial(INITIATED_STATE)
+                .state(INITIATED_STATE, SAVING_PRICING_INFO_EVENT)
+                .state(RFQ_SAVED_STATE, ASKING_IS_BETA_USER_EVENT)
+                .choice(PRICING_INFO_SAVED_STATE)
+                .state(IS_A_BETA_USER_STATE)
+                .state(IS_NOT_A_BETA_USER_STATE)
+                .choice(PRICE_ASKED_STATE)
+                .state(PRICE_ASK_CANCELLED_STATE)
+                .state(PRICE_ASK_ACKED_STATE, APPLYING_MARGIN_EVENT)
+                .state(PRICING_OTHER_INFO_SAVED_STATE, DEFAULTING_BOOKING_INFO_EVENT)
+                .state(MARGIN_SAVED_STATE, ASKING_PDC_COMPUTATION_EVENT)
+                .state(DEFAULT_BOOKING_INFO_SAVED_STATE)
+                .state(PDC_COMPUTATION_ASKED_STATE)
+                .state(PDC_COMPUTATION_SAVED_STATE)
+                .end(TRANSACTION_SENT_STATE);
     }
 
     @Override
@@ -49,18 +59,70 @@ public class WorkflowConfiguration extends EnumStateMachineConfigurerAdapter<Wor
         super.configure(transitions);
         final WorkflowAction workflowAction = workflowAction();
         transitions
-                .withExternal().source(INITIATED).target(RFQ_STORAGE_SUCCEEDED).event(STORING_RFQ).action(workflowAction::storeRfq).and()
-                .withExternal().source(RFQ_STORAGE_SUCCEEDED).target(PRICING_INFO_STORAGE_SUCCEEDED).event(STORING_PRICING_INFO).action(workflowAction::storeRfq).and()
-                .withExternal().source(PRICING_INFO_STORAGE_SUCCEEDED).target(LIFE_SAVING_SUCCEEDED).event(SAVING_STATUS_NEW).action(workflowAction::saveStatusNew).and()
-                .withChoice().source(LIFE_SAVING_SUCCEEDED).first(BETA_USER_CONFIRMED, workflowAction::requestBetaUserInfo).last(BETA_USER_DENIED).and()
-                .withChoice().source(BETA_USER_CONFIRMED).first(OTC_QUOTE_REQUEST_ACCEPTED, workflowAction::sendRfqToDefaultPricer).last(QUOTE_REQUEST_CANCELLED).and()
-                // Check if it is really that
-                .withChoice().source(OTC_QUOTE_REQUEST_ACCEPTED).first(OTC_QUOTED, workflowAction::receivePrice).last(QUOTE_REQUEST_CANCELLED).and()
-                .withExternal().source(OTC_QUOTED).target(PRICING_OTHER_INFO_SAVING_SUCCEEDED).action(workflowAction::savePricingOtherInfo).and()
-                .withExternal().source(PRICING_OTHER_INFO_SAVING_SUCCEEDED).target(MARGIN_RESPONSE_RECEIVED).action(workflowAction::applyMargin).and()
-                .withExternal().source(MARGIN_RESPONSE_RECEIVED).target(DEFAULT_BOOKING_INFO_REQUEST_SUCCEEDED).action(workflowAction::defaultBookingInfo).and()
-                .withExternal().source(DEFAULT_BOOKING_INFO_REQUEST_SUCCEEDED).target(PDC_CALCULATION_REQUEST_SUCCEEDED).action(workflowAction::requestPdcCalculation).and()
-                .withExternal().source(PDC_CALCULATION_REQUEST_SUCCEEDED).target(TRANSACTION_SENT_ACKNOWLEDGED).action(workflowAction::requestPdcCalculation);
+                // Waiting request creation
+                .withExternal()
+                    .source(INITIATED_STATE)
+                    .target(RFQ_SAVED_STATE)
+                    .event(SAVING_RFQ_EVENT)
+                    .action(workflowAction::saveRfq)
+                    .and()
+                .withExternal()
+                    .source(RFQ_SAVED_STATE)
+                    .target(PRICING_INFO_SAVED_STATE)
+                    .event(SAVING_PRICING_INFO_EVENT)
+                    .action(workflowAction::savePricingInfo)
+                    .and()
+                .withChoice()
+                    .source(PRICING_INFO_SAVED_STATE)
+                    .first(IS_A_BETA_USER_STATE, workflowAction::askIsABetaUser)
+                    .last(IS_NOT_A_BETA_USER_STATE)
+                    .and()
+                .withExternal()
+                    .source(IS_A_BETA_USER_STATE)
+                    .target(PRICE_ASKED_STATE)
+                    .action(workflowAction::askPrice)
+                    .and()
+                .withExternal()
+                    .source(IS_NOT_A_BETA_USER_STATE)
+                    .target(TRANSACTION_SENT_STATE)
+                    .action(workflowAction::sendTransaction)
+                    .and()
+                .withChoice()
+                    .source(PRICE_ASKED_STATE)
+                    .first(PRICE_ASK_ACKED_STATE, workflowAction::receiveAckPrice)
+                    .last(PRICE_ASK_CANCELLED_STATE)
+                    .and()
+                // Waiting trader pricing info
+                .withExternal()
+                    .source(PRICE_ASK_ACKED_STATE)
+                    .target(PRICING_OTHER_INFO_SAVED_STATE)
+                    .event(RECEIVING_PRICE_EVENT)
+                    .action(workflowAction::savePricingOtherInfo)
+                    .and()
+                .withExternal()
+                    .source(PRICING_OTHER_INFO_SAVED_STATE)
+                    .target(MARGIN_SAVED_STATE)
+                    .event(APPLYING_MARGIN_EVENT)
+                    .action(workflowAction::applyMargin)
+                    .and()
+                .withExternal()
+                    .source(MARGIN_SAVED_STATE)
+                    .target(DEFAULT_BOOKING_INFO_SAVED_STATE)
+                    .event(DEFAULTING_BOOKING_INFO_EVENT)
+                    .action(workflowAction::defaultBookingInfo)
+                    .and()
+                .withExternal()
+                    .source(DEFAULT_BOOKING_INFO_SAVED_STATE)
+                    .target(PDC_COMPUTATION_ASKED_STATE)
+                    .event(ASKING_PDC_COMPUTATION_EVENT)
+                    .action(workflowAction::requestPdcComputation)
+                    .and()
+                // Waiting PDC result
+                .withExternal()
+                    .source(PDC_COMPUTATION_ASKED_STATE)
+                    .target(TRANSACTION_SENT_STATE)
+                    .event(RECEIVING_PDC_COMPUTATION_EVENT)
+                    .action(workflowAction::sendTransaction);
     }
 
 
@@ -69,6 +131,7 @@ public class WorkflowConfiguration extends EnumStateMachineConfigurerAdapter<Wor
         return new WorkflowStateListener();
     }
 
+    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
     public WorkflowController workflowController(final StateMachineFactory<WorkflowState, WorkflowEvent> stateMachineFactory) {
         return new WorkflowController(stateMachineFactory);
