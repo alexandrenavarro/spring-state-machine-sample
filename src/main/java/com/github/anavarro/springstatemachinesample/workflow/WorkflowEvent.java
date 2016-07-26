@@ -1,21 +1,25 @@
 package com.github.anavarro.springstatemachinesample.workflow;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
- * Created by anavarro on 23/07/16.
+ * Created by anavarro on 26/07/16.
  */
+@AllArgsConstructor
 public enum WorkflowEvent {
-    STORING_RFQ,
-    STORING_PRICING_INFO,
-    SAVING_STATUS_NEW,
-    REQUESTING_BETA_USER_INFO,
-    SENDING_RFQ_TO_DEFAULT_PRICER,
-    SAVING_PRICING_ACK_INFO,
-    CANCELLING_RFQ,
-    SAVING_PRICING_OTHER_INFO,
-    APPLYING_MARGIN,
-    DEFAULTING_BOOKING_INFO,
-    REQUESTING_PDC_CALCULATION,
-    FETCHING_PDC_RESULT,
-    SENDING_TRANSACTION_TO_ONYX_REQUEST
+
+    SAVING_RFQ_EVENT(false),
+    SAVING_PRICING_INFO_EVENT(true),
+    ASKING_IS_BETA_USER_EVENT(true),
+    RECEIVING_PRICE_EVENT(false),
+    APPLYING_MARGIN_EVENT(true),
+    DEFAULTING_BOOKING_INFO_EVENT(true),
+    ASKING_PDC_COMPUTATION_EVENT(true),
+    RECEIVING_PDC_COMPUTATION_EVENT(false);
+
+    @Getter
+    // is the event is sent internally via the action (true) or can be sent by the Controller (false)
+    final boolean internalEvent;
 
 }
