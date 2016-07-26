@@ -12,8 +12,11 @@
         <springBootVersion>1.3.6.RELEASE</springBootVersion>
         <springStatemachineCoreVersion>1.1.0.RELEASE</springStatemachineCoreVersion>
         <lombokVersion>1.16.10</lombokVersion>
+        <swaggerVersion>2.5.0</swaggerVersion>
+        <awaitilityVersion>2.0.0</awaitilityVersion>
         <junitVersion>4.12</junitVersion>
         <assertjVersion>3.5.2</assertjVersion>
+
     </properties>
 
 
@@ -34,6 +37,18 @@
             <version>${springBootVersion}</version>
         </dependency>
 
+        <!-- swagger -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swaggerVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${swaggerVersion}</version>
+        </dependency>
+
         <!-- state machine -->
         <dependency>
             <groupId>org.springframework.statemachine</groupId>
@@ -46,6 +61,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombokVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitilityVersion}</version>
         </dependency>
 
         <!-- tests -->
