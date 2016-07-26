@@ -26,8 +26,8 @@ public final class WorkflowAction {
     public boolean askIsABetaUser(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
         log.info("askIsABetaUser is starting ... state:{}", stateContext.getStateMachine().getState().getId());
         log.info("askIsABetaUser finished.");
-        final boolean isBetaUser = true;
-        return isBetaUser;
+        final boolean isABetaUser = true;
+        return isABetaUser;
     }
 
     public void askPrice(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
