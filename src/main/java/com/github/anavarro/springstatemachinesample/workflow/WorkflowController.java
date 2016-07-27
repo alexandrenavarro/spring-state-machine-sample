@@ -6,8 +6,10 @@ import org.awaitility.Awaitility;
 import org.springframework.http.HttpStatus;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
+import org.springframework.statemachine.state.State;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -52,9 +54,7 @@ public final class WorkflowController {
             this.stateMachineMap.put(stateMachine.getId(), stateMachine);
             log.debug("stateMachine:{}", stateMachine);
             // Need because ThreadPool is used
-            Awaitility.await().until(() -> stateMachine != null);
-            stateMachine.sendEvent(WorkflowEvent.SAVING_RFQ_EVENT);
-            Awaitility.await().until(() -> stateMachine.getState() != null);
+            Awaitility.await().until(() -> stateMachine != null && stateMachine.getState() != null);
             return Workflow.builder()
                            .workflowId(stateMachine.getId())
                            .workflowState(stateMachine.getState().getId())
@@ -69,25 +69,40 @@ public final class WorkflowController {
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation(value = "Retrieve a workflow instance by passing a id")
     @ApiResponses({@ApiResponse(code = 200, message = "Workflow was created"),
-                   @ApiResponse(code = 404, message = "WorkflowId not found")})
+            @ApiResponse(code = 404, message = "WorkflowId not found")})
     public Workflow findOne(@PathVariable("workflowId") @ApiParam(value = "workflowId", required = true) final String workflowId) {
         final StateMachine<WorkflowState, WorkflowEvent> stateMachine = this.stateMachineMap.get(workflowId);
         if (stateMachine != null) {
             return mapStateMachineToWorkflow(stateMachine);
         } else {
-            // TODO create a ResourceNotFoundException and map in spring
+            // TODO create a ResourceNotFoundException and map in spring
             throw new IllegalArgumentException("WorkflowId not found");
         }
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/{workflowId}/events/{workflowEventId}")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{workflowId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ApiOperation(value = "Delete a workflow instance by passing a id")
+    @ApiResponses({@ApiResponse(code = 204, message = "Workflow was deleted")})
+    public void delete(@PathVariable("workflowId") @ApiParam(value = "workflowId", required = true) final String workflowId) {
+        if (stateMachineMap.containsKey(workflowId)) {
+            stateMachineMap.get(workflowId).stop();
+            stateMachineMap.remove(workflowId);
+        } else {
+            // TODO create a specific and map in spring
+            throw new IllegalArgumentException("Workflow already created");
+        }
+    }
+
+
+    @RequestMapping(method = RequestMethod.POST, value = "/{workflowId}/events")
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation(value = "Launch a event on a workflow")
     @ApiResponses({@ApiResponse(code = 200, message = "Workflow was created"),
                    @ApiResponse(code = 400, message = "Bad request, workflowEventId is valid?"),
                    @ApiResponse(code = 404, message = "WorkflowId not found")})
-    public WorkflowEvent saveWorkflowEvent(@PathVariable("workflowId") @ApiParam(value = "workflowId", required = true) final String workflowId,
-                                           @PathVariable("workflowEventId") @ApiParam(value = "workflowEventId", required = true) final WorkflowEvent workflowEventId) {
+    public WorkflowEvent triggerWorflowEvent(@PathVariable("workflowId") @ApiParam(value = "workflowId", required = true) final String workflowId,
+                                             @RequestParam("workflowEventId") @ApiParam(value = "workflowEventId", required = true) final WorkflowEvent workflowEventId) {
         final StateMachine<WorkflowState, WorkflowEvent> stateMachine = this.stateMachineMap.get(workflowId);
         if (stateMachine != null) {
             final boolean result = this.stateMachineMap.get(workflowId).sendEvent(workflowEventId);
@@ -103,6 +118,36 @@ public final class WorkflowController {
             throw new IllegalArgumentException("WorkflowId not found");
         }
 
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/{workflowId}/states")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiOperation(value = "Retrieve a workflow state instance by passing a id")
+    @ApiResponses({@ApiResponse(code = 200, message = "Workflow was created"),
+            @ApiResponse(code = 404, message = "WorkflowId not found")})
+    public WorkflowState getState(@PathVariable("workflowId") @ApiParam(value = "workflowId", required = true) final String workflowId) {
+        final StateMachine<WorkflowState, WorkflowEvent> stateMachine = this.stateMachineMap.get(workflowId);
+        if (stateMachine != null) {
+            return stateMachine.getState().getId();
+        } else {
+            // TODO create a ResourceNotFoundException and map in spring
+            throw new IllegalArgumentException("WorkflowId not found");
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/{workflowId}/states/next")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiOperation(value = "Retrieve a workflow state instance by passing a id")
+    @ApiResponses({@ApiResponse(code = 200, message = "Workflow was created"),
+            @ApiResponse(code = 404, message = "WorkflowId not found")})
+    public List<WorkflowState> getNextStates(@PathVariable("workflowId") @ApiParam(value = "workflowId", required = true) final String workflowId) {
+        final StateMachine<WorkflowState, WorkflowEvent> stateMachine = this.stateMachineMap.get(workflowId);
+        if (stateMachine != null) {
+            return stateMachine.getTransitions().stream().filter(workflowStateWorkflowEventTransition -> workflowStateWorkflowEventTransition.getSource().getId() == stateMachine.getState().getId()).map(workflowStateWorkflowEventTransition -> workflowStateWorkflowEventTransition.getTarget().getId()).collect(Collectors.toList());
+        } else {
+            // TODO create a ResourceNotFoundException and map in spring
+            throw new IllegalArgumentException("WorkflowId not found");
+        }
     }
 
     private Workflow mapStateMachineToWorkflow(final StateMachine<WorkflowState, WorkflowEvent> stateMachine) {

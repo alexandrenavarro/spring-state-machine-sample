@@ -9,7 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum WorkflowState {
 
-    INITIATED_STATE(false, "PRE_NEW"),
+    WORKFLOW_INITIATED_STATE(false, "PRE_NEW"),
     RFQ_SAVED_STATE(false, "PRE_NEW"),
     PRICING_INFO_SAVED_STATE(true, "NEW"),
     IS_A_BETA_USER_STATE(false, "PRE_BEING_PRICE"),
@@ -22,7 +22,7 @@ public enum WorkflowState {
     DEFAULT_BOOKING_INFO_SAVED_STATE(false, "PRE_DEAL_VALIDATED"),
     PDC_COMPUTATION_ASKED_STATE(false, "PRE_DEAL_VALIDATED"),
     PDC_COMPUTATION_SAVED_STATE(false, "PRE_DEAL_VALIDATED"),
-    TRANSACTION_SENT_STATE(true, "PRE_DEAL_VALIDATED");
+    DEAL_SAVED_STATE(true, "PRE_DEAL_VALIDATED");
     // TODO add the other states
 
     @Getter

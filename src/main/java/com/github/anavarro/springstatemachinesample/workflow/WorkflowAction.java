@@ -11,17 +11,17 @@ import static com.github.anavarro.springstatemachinesample.workflow.WorkflowEven
 @Slf4j
 public final class WorkflowAction {
 
+
     public void saveRfq(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
         log.info("saveRfq is starting ... state:{}", stateContext.getStateMachine().getState().getId());
         log.info("saveRfq finished.");
-        stateContext.getStateMachine().sendEvent(SAVING_PRICING_INFO_EVENT);
     }
 
     public void savePricingInfo(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
         log.info("savePricingInfo is starting ... state:{}", stateContext.getStateMachine().getState().getId());
         log.info("savePricingInfo finished.");
-        stateContext.getStateMachine().sendEvent(ASKING_IS_BETA_USER_EVENT);
     }
+
 
     public boolean askIsABetaUser(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
         log.info("askIsABetaUser is starting ... state:{}", stateContext.getStateMachine().getState().getId());
@@ -41,27 +41,19 @@ public final class WorkflowAction {
         return true;
     }
 
-    public void cancelRfq(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
-        log.info("cancelRfq is starting ... state:{}", stateContext.getStateMachine().getState().getId());
-        log.info("cancelRfq finished.");
-    }
-
     public void savePricingOtherInfo(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
         log.info("savePricingOtherInfo is starting ... state:{}", stateContext.getStateMachine().getState().getId());
         log.info("savePricingOtherInfo finished.");
-        stateContext.getStateMachine().sendEvent(APPLYING_MARGIN_EVENT);
     }
 
     public void applyMargin(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
         log.info("applyMargin is starting ... state:{}", stateContext.getStateMachine().getState().getId());
         log.info("applyMargin finished.");
-        stateContext.getStateMachine().sendEvent(DEFAULTING_BOOKING_INFO_EVENT);
     }
 
     public void defaultBookingInfo(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
         log.info("defaultBookingInfo is starting ... state:{}", stateContext.getStateMachine().getState().getId());
         log.info("defaultBookingInfo finished.");
-        stateContext.getStateMachine().sendEvent(ASKING_PDC_COMPUTATION_EVENT);
     }
 
     public void requestPdcComputation(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
@@ -69,9 +61,9 @@ public final class WorkflowAction {
         log.info("requestPdcComputation finished.");
     }
 
-    public void sendTransaction(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
-        log.info("sendTransaction is starting ... state:{}", stateContext.getStateMachine().getState().getId());
-        log.info("sendTransaction finished.");
+    public void saveDeal(final StateContext<WorkflowState, WorkflowEvent> stateContext) {
+        log.info("saveDeal is starting ... state:{}", stateContext.getStateMachine().getState().getId());
+        log.info("saveDeal finished.");
     }
 
 }
