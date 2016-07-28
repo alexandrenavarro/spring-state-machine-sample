@@ -105,15 +105,17 @@ public final class WorkflowController {
                                              @RequestParam("workflowEventId") @ApiParam(value = "workflowEventId", required = true) final WorkflowEvent workflowEventId) {
         final StateMachine<WorkflowState, WorkflowEvent> stateMachine = this.stateMachineMap.get(workflowId);
         if (stateMachine != null) {
-            final boolean result = this.stateMachineMap.get(workflowId).sendEvent(workflowEventId);
-            if (result) {
-                return workflowEventId;
+            if (stateMachine.getTransitions().stream().anyMatch(workflowStateWorkflowEventTransition -> workflowStateWorkflowEventTransition.getSource().getId() == stateMachine.getState().getId() && workflowStateWorkflowEventTransition.getTrigger().getEvent() == workflowEventId)) {
+                final boolean result = this.stateMachineMap.get(workflowId).sendEvent(workflowEventId);
+                if (result) {
+                    return workflowEventId;
+                } else {
+                    throw new IllegalArgumentException("Impossible to sendEvent.");
+                }
             } else {
-                //// TODO create a ResourceNotFoundException and map in spring
-                throw new IllegalArgumentException("Impossible to sendEvent");
+                throw new IllegalArgumentException("The workflowEventId:" + workflowEventId + " is not launcheable when state:" + stateMachine.getState().getId()+ ", so it is ignored.");
             }
         } else {
-            log.warn("WorflowId:{} is not found, worflowEventId={} will not be sent.", workflowId, workflowEventId);
             // TODO create a ResourceNotFoundException and map in spring
             throw new IllegalArgumentException("WorkflowId not found");
         }
