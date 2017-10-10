@@ -9,19 +9,15 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <springBootVersion>1.3.6.RELEASE</springBootVersion>
-        <springStatemachineCoreVersion>1.1.0.RELEASE</springStatemachineCoreVersion>
-        <lombokVersion>1.16.10</lombokVersion>
-        <swaggerVersion>2.5.0</swaggerVersion>
-        <awaitilityVersion>2.0.0</awaitilityVersion>
+        <springBootVersion>1.5.7.RELEASE</springBootVersion>
+        <springStatemachineCoreVersion>1.2.6.RELEASE</springStatemachineCoreVersion>
+        <lombokVersion>1.16.18</lombokVersion>
+        <swaggerVersion>2.7.0</swaggerVersion>
+        <awaitilityVersion>3.0.0</awaitilityVersion>
         <junitVersion>4.12</junitVersion>
-        <assertjVersion>3.5.2</assertjVersion>
-
+        <assertjVersion>3.8.0</assertjVersion>
     </properties>
-
-
     <dependencies>
-
         <dependency>
             <!-- Import dependency management from Spring Boot -->
             <groupId>org.springframework.boot</groupId>
@@ -36,7 +32,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${springBootVersion}</version>
         </dependency>
-
         <!-- swagger -->
         <dependency>
             <groupId>io.springfox</groupId>
@@ -48,49 +43,41 @@
             <artifactId>springfox-swagger2</artifactId>
             <version>${swaggerVersion}</version>
         </dependency>
-
         <!-- state machine -->
         <dependency>
             <groupId>org.springframework.statemachine</groupId>
-            <artifactId>spring-statemachine-core</artifactId>
+            <artifactId>spring-statemachine-boot</artifactId>
             <version>${springStatemachineCoreVersion}</version>
         </dependency>
-
         <!-- lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombokVersion}</version>
         </dependency>
-
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitilityVersion}</version>
         </dependency>
-
         <!-- tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${springBootVersion}</version>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junitVersion}</version>
             <scope>test</scope>
         </dependency>
-
-
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertjVersion}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
     <build>
         <plugins>
@@ -111,5 +98,4 @@
             </resource>
         </resources>
     </build>
-
 </project>
