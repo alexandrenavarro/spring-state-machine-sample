@@ -5,8 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.springframework.http.HttpStatus;
 import org.springframework.statemachine.StateMachine;
+import org.springframework.statemachine.StateMachineContext;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.state.State;
+import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -130,6 +132,30 @@ public final class WorkflowController {
     public WorkflowState getState(@PathVariable("workflowId") @ApiParam(value = "workflowId", required = true) final String workflowId) {
         final StateMachine<WorkflowState, WorkflowEvent> stateMachine = this.stateMachineMap.get(workflowId);
         if (stateMachine != null) {
+            return stateMachine.getState().getId();
+        } else {
+            // TODO create a ResourceNotFoundException and map in spring
+            throw new IllegalArgumentException("WorkflowId not found");
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/{workflowId}/states/{stateId}")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiOperation(value = "Retrieve a workflow state instance by passing a id")
+    @ApiResponses({@ApiResponse(code = 200, message = "Workflow was created"),
+            @ApiResponse(code = 404, message = "WorkflowId not found")})
+    public WorkflowState getState(@PathVariable("workflowId") @ApiParam(value = "workflowId", required = true) final String workflowId,
+                                  @PathVariable("stateId") @ApiParam(value = "stateId", required = true) final WorkflowState stateId) {
+        final StateMachine<WorkflowState, WorkflowEvent> stateMachine = this.stateMachineMap.get(workflowId);
+        if (stateMachine != null) {
+            stateMachine.stop();
+            stateMachine.getStateMachineAccessor().doWithAllRegions(e -> {
+                final StateMachineContext<WorkflowState,WorkflowEvent> stateMachineContext = new DefaultStateMachineContext<WorkflowState, WorkflowEvent>(
+                        stateId, null, null, null);
+                e.resetStateMachine(stateMachineContext);
+            });
+            stateMachine.start();
+            log.info("stateMachine:{}", stateMachine);
             return stateMachine.getState().getId();
         } else {
             // TODO create a ResourceNotFoundException and map in spring
